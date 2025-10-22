@@ -1,16 +1,31 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using minimal_api.Domain.DTOs;
+using minimal_api.Domain.Interfaces;
+using minimal_api.Domain.Services;
+using minimal_api.Infraestructure.DB;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
+});
+
+builder.Services.AddScoped<IAdminService, AdminService>();
+
+
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Ola Mundo!");
 
 
-app.MapPost("/login", (LoginDto loginDto) =>
+app.MapPost("/login", ([FromBody] LoginDto loginDto, IAdminService adminService) =>
 {
-    if (loginDto.Email == "adm@teste.com" && loginDto.Senha == "123456")
+    if (adminService.Login(loginDto) != null)
     {
-        return Results.Ok("Admin logado com sucesso!");
+        return Results.Ok("Usuário logado com sucesso!");
     }
     else
     {
