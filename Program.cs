@@ -5,6 +5,7 @@ using minimal_api.Domain.Interfaces;
 using minimal_api.Domain.Services;
 using minimal_api.Infraestructure.DB;
 using Microsoft.OpenApi.Models;
+using minimal_api.Domain.ModelViews;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,7 +34,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Ola Mundo!");
+app.MapGet("/", () => Results.Json(new Home()));
 
 
 app.MapPost("/login", ([FromBody] LoginDto loginDto, IAdminService adminService) =>
