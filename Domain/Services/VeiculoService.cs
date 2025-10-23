@@ -2,6 +2,7 @@
 using minimal_api.Domain.Entities;
 using minimal_api.Domain.Interfaces;
 using minimal_api.Infraestructure.DB;
+using System.Linq;
 
 namespace minimal_api.Domain.Services
 {
@@ -22,7 +23,7 @@ namespace minimal_api.Domain.Services
             _appDbContext.SaveChanges();
         }
 
-        public List<Veiculo> GetAll(int pagina = 1, string? nome = null, string? marca = null)
+        public List<Veiculo> GetAll(int? pagina = 1, string? nome = null, string? marca = null)
         {
 
             var query = _appDbContext.Veiculos.AsQueryable();
@@ -34,8 +35,11 @@ namespace minimal_api.Domain.Services
 
             int pageSize = 10;
 
-            query = query.Skip((pagina - 1) * pageSize).Take(pageSize);
-
+            if(pagina != null)
+            {
+                query = query.Skip(((int)pagina - 1) * pageSize).Take(pageSize);
+            }
+            
             return query.ToList();
         }
 
