@@ -35,7 +35,7 @@ var app = builder.Build();
 #endregion
 
 #region Home
-app.MapGet("/", () => Results.Json(new Home())).WithTags("Home");
+app.MapGet("/", () => Results.Json(new HomeView())).WithTags("Home");
 #endregion
 
 #region Administradores
@@ -56,6 +56,15 @@ app.MapPost("/administradores/login", ([FromBody] LoginDto loginDto, IAdminServi
 
 app.MapPost("/veiculos", ([FromBody] VeiculoDto veiculoDto, IVeiculoService veiculoService) =>
 {
+
+    // Validações
+    var errors = new ErrorView();
+
+    if(string.IsNullOrEmpty(veiculoDto.Nome)) errors.Message.Add("O campo 'Nome' é obrigatório.");
+    if(string.IsNullOrEmpty(veiculoDto.Marca)) errors.Message.Add("O campo 'Marca' é obrigatório.");
+    if(veiculoDto.Ano < 1950) errors.Message.Add("O veículo é muito antigo! Só é permitido cadastrar veículo acima do ano de 1950.");
+
+    if(errors.Message.Count > 0) return Results.BadRequest(errors);
 
     var veiculo = new Veiculo
     {
