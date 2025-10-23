@@ -54,17 +54,26 @@ app.MapPost("/administradores/login", ([FromBody] LoginDto loginDto, IAdminServi
 
 #region Veículos
 
+// Método de Validações
+ErrorView validaDTO(VeiculoDto veiculoDto)
+{
+    var errors = new ErrorView
+    {
+        Message = new List<string>()
+    };
+
+    if (string.IsNullOrEmpty(veiculoDto.Nome)) errors.Message.Add("O campo 'Nome' é obrigatório.");
+    if (string.IsNullOrEmpty(veiculoDto.Marca)) errors.Message.Add("O campo 'Marca' é obrigatório.");
+    if (veiculoDto.Ano < 1950) errors.Message.Add("O veículo é muito antigo! Só é permitido cadastrar veículo acima do ano de 1950.");
+
+    return errors;
+} 
+
 app.MapPost("/veiculos", ([FromBody] VeiculoDto veiculoDto, IVeiculoService veiculoService) =>
 {
-
     // Validações
-    var errors = new ErrorView();
-
-    if(string.IsNullOrEmpty(veiculoDto.Nome)) errors.Message.Add("O campo 'Nome' é obrigatório.");
-    if(string.IsNullOrEmpty(veiculoDto.Marca)) errors.Message.Add("O campo 'Marca' é obrigatório.");
-    if(veiculoDto.Ano < 1950) errors.Message.Add("O veículo é muito antigo! Só é permitido cadastrar veículo acima do ano de 1950.");
-
-    if(errors.Message.Count > 0) return Results.BadRequest(errors);
+    var errors = validaDTO(veiculoDto);
+    if (errors.Message.Count > 0) return Results.BadRequest(errors);
 
     var veiculo = new Veiculo
     {
@@ -74,8 +83,8 @@ app.MapPost("/veiculos", ([FromBody] VeiculoDto veiculoDto, IVeiculoService veic
     };
 
     veiculoService.Insert(veiculo);
-
     return Results.Created($"/veiculos/{veiculo.Id}", veiculo);
+
 }).WithTags("Veiculos");
 
 app.MapGet("/veiculos", ([FromQuery]int? pagina, IVeiculoService veiculoService) =>
@@ -95,6 +104,10 @@ app.MapPut("/veiculos/{id}", ([FromRoute] int id, VeiculoDto veiculoDto, IVeicul
 {
     var veiculo = veiculoService.GetById(id);
     if (veiculo == null) return Results.NotFound();
+
+    // Validações
+    var errors = validaDTO(veiculoDto);
+    if (errors.Message.Count > 0) return Results.BadRequest(errors);
 
     veiculo.Nome = veiculoDto.Nome;
     veiculo.Marca = veiculoDto.Marca;
