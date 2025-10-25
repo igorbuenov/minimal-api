@@ -15,6 +15,11 @@ namespace minimal_api.Infraestructure.DB
             _configuration = configuration;
         }
 
+        public AppDbContext(IConfigurationRoot configuration)
+        {
+            _configuration = configuration;
+        }
+
         public DbSet<Administrador> Administradores { get; set; } = default!;
         public DbSet<Veiculo> Veiculos { get; set; } = default!;
 
