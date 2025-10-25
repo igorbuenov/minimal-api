@@ -31,7 +31,9 @@ builder.Services.AddAuthentication( option =>
     option.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateLifetime = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+        ValidateIssuer = false,
+        ValidateAudience = false
     };
 });
 
@@ -51,18 +53,42 @@ builder.Services.AddScoped<IVeiculoService, VeiculoService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo 
-    { 
-        Title = "Minimal API - Veiculos", 
-        Version = "v1" 
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Minimal API - Veiculos",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "Jwt",
+        In = ParameterLocation.Header,
+        Description = "Insira o token Jwt"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { 
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
     });
 });
-
 var app = builder.Build();
 #endregion
 
 #region Home
-app.MapGet("/", () => Results.Json(new HomeView())).WithTags("Home");
+app.MapGet("/", () => Results.Json(new HomeView())).AllowAnonymous().WithTags("Home");
 #endregion
 
 #region Administradores
@@ -108,7 +134,7 @@ app.MapPost("/administradores/login", ([FromBody] LoginDto loginDto, IAdminServi
     {
         return Results.Unauthorized();
     }
-}).WithTags("Administrador");
+}).AllowAnonymous().WithTags("Administrador");
 
 app.MapPost("/administradores", ([FromBody] AdminDto adminDto, IAdminService adminService) =>
 {
